@@ -4,18 +4,14 @@ import cron from "node-cron";
 import getToken from "./token.js";
 
 let prepayPowerToken = await getToken("prepaypower");
-let yunoAccessToken = await getToken("yuno");
 let PrepayTransactionsIdsRecord = [];
-let YunoTransactionsIdsRecord = [];
 
-await NPSReport("yuno", YunoTransactionsIdsRecord, yunoAccessToken);
-// await NPSReport("prepaypower", PrepayTransactionsIdsRecord, prepayPowerToken);
+await NPSReport("prepaypower", PrepayTransactionsIdsRecord, prepayPowerToken);
 
 const refresTokens = async () => {
   console.log("refreshing access token " + dayjs().format("HH:mm"));
   try {
-    // prepayPowerToken = await getToken("prepaypower");
-    yunoAccessToken = await getToken("yuno");
+    prepayPowerToken = await getToken("prepaypower");
     console.log("access token refreshed");
   } catch (error) {
     console.log("something went wrong while refreshing access tokens " + error);
@@ -25,28 +21,17 @@ const refresTokens = async () => {
 const mainSchedule = "* 7-22 * * *";
 const mainTask = cron.schedule(mainSchedule, async () => {
   console.log("Running job..." + dayjs().format("DD/MM HH:mm:ss"));
-  // await NPSReport("prepaypower", PrepayTransactionsIdsRecord, prepayPowerToken);
-  await NPSReport("yuno", YunoTransactionsIdsRecord, yunoAccessToken);
+  await NPSReport("prepaypower", PrepayTransactionsIdsRecord, prepayPowerToken);
 });
 
 const tokenSchedule = "*/15 7-22 * * *";
-const tokenTask = cron.schedule(mainSchedule, async () => {
+const tokenTask = cron.schedule(tokenSchedule, async () => {
   console.log("Running job..." + dayjs().format("DD/MM HH:mm:ss"));
   await refresTokens();
 });
 
-console.log("valid schedule: " + cron.validate(mainSchedule));
-console.log("valid schedule: " + cron.validate(tokenSchedule));
-
 await mainTask.start();
 await tokenTask.start();
-
-// const runAbnReportLoop = async () => {
-//   while (true) {
-
-//     await new Promise((resolve) => setTimeout(resolve, 10000)); // Wait for 10 seconds before running again
-//   }
-// };
 
 // Start the loop
 // runAbnReportLoop();

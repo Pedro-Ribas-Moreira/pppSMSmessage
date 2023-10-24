@@ -4,17 +4,9 @@ import axios from "axios";
 
 const requestReport = async (token) => {
   const timestampEnd = dayjs().add(1, "hour").toISOString();
-  const timestampStart = dayjs()
-    .add(1, "hour")
-    .subtract(3, "minute")
+  const timestampStart = dayjs(timestampEnd)
+    .subtract(15, "minutes")
     .toISOString();
-
-  // console.log({ timestampEnd, timestampStart });
-  // // const timestampEnd = dayjs().add(1, "hour").toISOString();
-  // // const timestampStart = dayjs()
-  // //   .add(1, "hour")
-  // //   .subtract(3, "minute")
-  // //   .toISOString();
 
   const response = await axios.post(
     "https://api.8x8.com/eu/analytics/cc/v6/historical-metrics/",
@@ -24,7 +16,10 @@ const requestReport = async (token) => {
         start: `${timestampStart}`,
         end: `${timestampEnd}`,
       },
-      intraDayTimeRange: { start: "01:00:00.000", end: "23:00:00.000" },
+      intraDayTimeRange: {
+        start: dayjs().subtract(15, "minute").format("HH:mm:ss"),
+        end: dayjs().format("HH:mm:ss"),
+      },
       type: "detailed-reports-interaction-details",
       title: "Call report to send NPS",
       // granularity: "15m",
@@ -55,16 +50,22 @@ const requestReport = async (token) => {
           operator: "in",
           value: ["inbound"],
         },
+        {
+          field: "queueId",
+          operator: "in",
+          value: ["141", "142", "132", "144", "110", "1589"],
+        },
       ],
     },
 
     {
       headers: {
         Authorization: "Bearer " + token,
-        "Content-Type": " application/json",
       },
+      "Content-Type": " application/json",
     }
   );
+  console.log(response);
   const reportId = response.data.id;
   return reportId;
 };
